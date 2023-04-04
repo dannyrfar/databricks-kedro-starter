@@ -21,3 +21,12 @@ iris_predictions:
   type: kedro_datasets.databricks.ManagedTableDataSet
   table: iris_predictions
   database: gold${catalog_suffix}
+
+regression_model:
+  type: kedro_datasets.databricks.MLFlowModel
+  flavor: mlflow.spark
+  model_name: spaceflights_model
+
+accuracy:
+  type: kedro_datasets.databricks.MLFlowMetrics
+  prefix: iris

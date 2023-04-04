@@ -47,8 +47,8 @@ CONFIG_LOADER_ARGS = {
 }
 
 # Instantiated spark and managed table hooks
-from {{ cookiecutter.python_package }}.hooks import  ManagedTableHooks
-HOOKS = (ManagedTableHooks())
+from {{ cookiecutter.python_package }}.hooks import  ManagedTableHooks, MLFlowHooks
+HOOKS = (ManagedTableHooks(), MLFlowHooks())
 
 # Installed plugins for which to disable hook auto-registration.
 # DISABLE_HOOKS_FOR_PLUGINS = ("kedro-viz",)

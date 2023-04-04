@@ -37,6 +37,5 @@ def generate_predictions(data):
     # evaluate the accuracy of the model using the test set
     evaluator = MulticlassClassificationEvaluator(metricName='accuracy')
     accuracy = evaluator.evaluate(prediction)
-    print(accuracy)
     
-    return prediction
+    return prediction, model, accuracy
