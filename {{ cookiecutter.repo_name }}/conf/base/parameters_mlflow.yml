@@ -1,0 +1,7 @@
+mlflow_enabled: True
+mlflow_sso_enabled: False
+mlflow_instance: databricks
+mlflow_tracking_uri: databricks
+mlflow_registry_uri: databricks
+mlflow_experiment: /Shared/{{ cookiecutter.python_package }}
+mlflow_log_params: []
