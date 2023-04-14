@@ -15,6 +15,7 @@ class ManagedTableHooks:
     """
     Create or update delta-tables used in catalog
     """
+
     @hook_impl
     def after_context_created(self, context) -> None:
         """Initialises a SparkSession using the config
@@ -52,8 +53,8 @@ class ManagedTableHooks:
                 owner_group = ds_obj._table.owner_group
                 if owner_group:
                     _get_spark().sql(
-                        f"ALTER TABLE {delta_catalog}.{database}"
-                        + f".{table} OWNER TO `{owner_group}`;"
+                        f"ALTER TABLE `{delta_catalog}`.`{database}`"
+                        + f".`{table}` OWNER TO `{owner_group}`;"
                     )
                     logger.info(
                         f"Transferred ownership of "
@@ -142,9 +143,7 @@ class ManagedTableHooks:
 
 
 def _get_spark():
-    return (
-        SparkSession.builder.getOrCreate()
-    )
+    return SparkSession.builder.getOrCreate()
 
 
 def create_or_alter_table(
@@ -156,7 +155,7 @@ def create_or_alter_table(
     partition_columns: List[str] = None,
     owner: str = None,
 ) -> None:
-    full_table_address = f"{catalog_name}.{database_name}.{table_name}"
+    full_table_address = f"`{catalog_name}`.`{database_name}`.`{table_name}`"
 
     if is_table_exists(table_name, catalog_name, database_name):
         logger.info(f"Found existing table {full_table_address}")
@@ -175,21 +174,21 @@ def create_or_alter_table(
             columns = " ".join(
                 [column["name"] + " " + column["type"] + "," for column in new_fields]
             ).strip(",")
-            query = f"""ALTER TABLE {catalog_name}.{database_name}.{table_name} \\
+            query = f"""ALTER TABLE `{catalog_name}`.`{database_name}`.`{table_name}` \\
                     ADD COLUMNS ({columns})"""
             logger.info("Running query: " + query)
             _get_spark().sql(query)
             if owner:
                 _get_spark().sql(
-                    f"ALTER TABLE {catalog_name}.{database_name}"
-                    + f".{table_name} OWNER TO `{owner}`;"
+                    f"ALTER TABLE `{catalog_name}`.`{database_name}`"
+                    + f".`{table_name}` OWNER TO `{owner}`;"
                 )
         else:
             logger.info(f"Table {full_table_address} conforms to schema")
             if owner:
                 _get_spark().sql(
-                    f"ALTER TABLE {catalog_name}.{database_name}"
-                    + f".{table_name} OWNER TO `{owner}`;"
+                    f"ALTER TABLE `{catalog_name}`.`{database_name}`"
+                    + f".`{table_name}` OWNER TO `{owner}`;"
                 )
 
     else:
@@ -235,13 +234,24 @@ def is_database_exists(
             > 0
         )
     else:
-        return (
-            _get_spark()
-            .sql(f"SHOW SCHEMAS")
-            .filter(f"databaseName = '{database_name}'")
-            .count()
-            > 0
-        )
+        exists = False
+        try:
+            exists = (
+                _get_spark()
+                .sql(f"SHOW SCHEMAS")
+                .filter(f"databaseName = '{database_name}'")
+                .count()
+                > 0
+            )
+        except:
+            exists = (
+                _get_spark()
+                .sql(f"SHOW SCHEMAS")
+                .filter(f"namespace = '{database_name}'")
+                .count()
+                > 0
+            )
+        return exists
 
 
 def create_table(
@@ -276,7 +286,9 @@ def create_table(
 
 
 def create_database(catalog_name: str, database_name: str, owner: str) -> None:
-    full_database_path = catalog_name + "." + database_name if catalog_name else database_name
+    full_database_path = (
+        catalog_name + "." + database_name if catalog_name else database_name
+    )
     logger.info("Creating database: " + full_database_path)
     if catalog_name:
         _get_spark().sql(f"USE CATALOG {catalog_name};")
