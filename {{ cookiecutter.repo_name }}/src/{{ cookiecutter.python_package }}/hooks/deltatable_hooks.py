@@ -1,5 +1,4 @@
 import logging
-import ast
 from typing import Any, Dict, List
 
 from kedro.framework.hooks import hook_impl
@@ -82,6 +81,10 @@ class ManagedTableHooks:
             RuntimeError
 
         """
+        extra_params = run_params.get("extra_params")
+        managed_schema_location = None
+        if schema_location := extra_params.get("schema_location"):
+            managed_schema_location = schema_location
         for ds_name in pipeline.inputs():
             try:
                 ds_obj = catalog._get_dataset(ds_name)
@@ -121,7 +124,7 @@ class ManagedTableHooks:
                 table_location = ds_obj._table.full_table_location()
 
                 if not is_database_exists(delta_catalog, database):
-                    create_database(delta_catalog, database, owner_group)
+                    create_database(delta_catalog, database, owner_group, managed_schema_location)
                 if schema:
                     create_or_alter_table(
                         catalog_name=delta_catalog,
@@ -133,13 +136,13 @@ class ManagedTableHooks:
                     )
         if catalog.layers:
             for dataset_name in list(catalog.layers.get("monitoring", [])):
-                dataset = ast.literal_eval(f"catalog.datasets.{dataset_name}")
+                dataset = eval(f"catalog.datasets.{dataset_name}")
                 delta_catalog = dataset._catalog
                 database = dataset._database
                 # schema = dataset._schema
                 owner_group = dataset._owner_group
                 if not is_database_exists(delta_catalog, database):
-                    create_database(delta_catalog, database, owner_group)
+                    create_database(delta_catalog, database, owner_group, managed_schema_location)
 
 
 def _get_spark():
@@ -155,7 +158,7 @@ def create_or_alter_table(
     partition_columns: List[str] = None,
     owner: str = None,
 ) -> None:
-    full_table_address = f"`{catalog_name}`.`{database_name}`.`{table_name}`"
+    full_table_address = f"{catalog_name}.{database_name}.{table_name}"
 
     if is_table_exists(table_name, catalog_name, database_name):
         logger.info(f"Found existing table {full_table_address}")
@@ -209,7 +212,7 @@ def is_table_exists(
     table_name: str, catalog_name: str = "main", database_name: str = "default"
 ) -> bool:
     if catalog_name:
-        _get_spark().sql(f"USE CATALOG {catalog_name}")
+        _get_spark().sql(f"USE CATALOG `{catalog_name}`")
     try:
         return (
             _get_spark()
@@ -269,7 +272,7 @@ def create_table(
         [field["name"] + " " + field["type"] + "," for field in fields]
     ).strip(",")
 
-    query = f"""CREATE TABLE {catalog_name}.{database_name}.{table_name} \\
+    query = f"""CREATE TABLE `{catalog_name}`.`{database_name}`.`{table_name}` \\
     ({columns}) USING DELTA"""
     if partition_columns:
         query += f" PARTITIONED BY ({','.join(partition_columns)})"
@@ -280,23 +283,28 @@ def create_table(
     _get_spark().sql(query)
     if owner:
         _get_spark().sql(
-            f"ALTER TABLE {catalog_name}.{database_name}"
-            + f".{table_name} OWNER TO `{owner}`;"
+            f"ALTER TABLE `{catalog_name}`.`{database_name}`"
+            + f".`{table_name}` OWNER TO `{owner}`;"
         )
 
 
-def create_database(catalog_name: str, database_name: str, owner: str) -> None:
+def create_database(
+    catalog_name: str, database_name: str, owner: str, managed_schema_location: str
+) -> None:
     full_database_path = (
-        catalog_name + "." + database_name if catalog_name else database_name
+        "`" + catalog_name + "`" + "." + "`" + database_name + "`"
+        if catalog_name
+        else "`" + database_name + "`"
     )
     logger.info("Creating database: " + full_database_path)
-    if catalog_name:
-        _get_spark().sql(f"USE CATALOG {catalog_name};")
-    _get_spark().sql(f"CREATE SCHEMA IF NOT EXISTS {database_name};")
+    query = f"CREATE SCHEMA IF NOT EXISTS {full_database_path}"
+    if managed_schema_location:
+        query += f" MANAGED LOCATION '{managed_schema_location}'"
+    _get_spark().sql(query)
     logger.info("Database: " + full_database_path + " created.")
     if owner:
         _get_spark().sql(
-            f"ALTER SCHEMA {catalog_name}.{database_name} OWNER TO `{owner}`;"
+            f"ALTER SCHEMA {full_database_path} OWNER TO `{owner}`;"
         )
         logger.info(
             "Database: "
