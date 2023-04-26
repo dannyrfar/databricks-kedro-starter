@@ -158,7 +158,7 @@ def create_or_alter_table(
     partition_columns: List[str] = None,
     owner: str = None,
 ) -> None:
-    full_table_address = f"{catalog_name}.{database_name}.{table_name}"
+    full_table_address = f"`{catalog_name}`.`{database_name}`.`{table_name}`"
 
     if is_table_exists(table_name, catalog_name, database_name):
         logger.info(f"Found existing table {full_table_address}")
