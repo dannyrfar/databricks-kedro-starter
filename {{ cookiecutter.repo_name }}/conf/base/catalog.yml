@@ -2,6 +2,11 @@
 #
 # Documentation for this file format can be found in "The Data Catalog"
 # Link: https://kedro.readthedocs.io/en/stable/data/data_catalog.html
+
+# _catalog: &catalog
+#   catalog:
+#   owner_group:
+
 iris_csv:
   type: pandas.CSVDataSet
   filepath: data/01_raw/iris.csv
@@ -9,23 +14,26 @@ iris_csv:
 iris_bronze:
   type: kedro_datasets.databricks.ManagedTableDataSet
   table: iris
-  database: bronze${catalog_suffix}
   dataframe_type: pandas
+  database: bronze
+  <<: *catalog
 
 iris_features:
   type: kedro_datasets.databricks.ManagedTableDataSet
   table: iris_features
-  database: silver${catalog_suffix}
+  database: silver
+  <<: *catalog
   
 iris_predictions:
   type: kedro_datasets.databricks.ManagedTableDataSet
-  table: iris_predictions
-  database: gold${catalog_suffix}
+  table: iris_predictions_{{ cookiecutter.user_email.split('@')[0] }}
+  database: gold
+  <<: *catalog
 
 regression_model:
   type: kedro_datasets.databricks.MLFlowModel
   flavor: mlflow.spark
-  model_name: spaceflights_model
+  model_name: iris_model_{{ cookiecutter.user_email.split('@')[0] }}
 
 accuracy:
   type: kedro_datasets.databricks.MLFlowMetrics

@@ -1,8 +1,3 @@
-"""
-This is a boilerplate pipeline 'spaceflight'
-generated using Kedro 0.18.4
-"""
-
 from pyspark.ml.feature import VectorAssembler, StringIndexer
 from pyspark.ml.classification import LogisticRegression
 from pyspark.ml.evaluation import MulticlassClassificationEvaluator

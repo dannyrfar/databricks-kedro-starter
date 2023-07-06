@@ -7,3 +7,7 @@ project_name:
   error_message: |
     It must contain only alphanumeric symbols, spaces, underscores and hyphens and
     be at least 2 characters long.
+user_email:
+  title: "User Email"
+  text: |
+    Please enter your email for this template to configure the notebook for you

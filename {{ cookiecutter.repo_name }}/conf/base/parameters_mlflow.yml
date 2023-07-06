@@ -3,5 +3,5 @@ mlflow_sso_enabled: False
 mlflow_instance: databricks
 mlflow_tracking_uri: databricks
 mlflow_registry_uri: databricks
-mlflow_experiment: /Shared/{{ cookiecutter.python_package }}
+mlflow_experiment: /Users/{{ cookiecutter.user_email }}/{{ cookiecutter.python_package }}
 mlflow_log_params: []
