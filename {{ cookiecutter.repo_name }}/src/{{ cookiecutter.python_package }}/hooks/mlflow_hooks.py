@@ -108,7 +108,7 @@ class MLFlowHooks:
 
             if "mlflow" in cls_name.lower():
                 should_init_mlflow = True
-                mlflow.spark.autolog()
+                # mlflow.spark.autolog()
                 break
 
         if should_init_mlflow:
