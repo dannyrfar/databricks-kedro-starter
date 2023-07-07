@@ -1,0 +1,33 @@
+# Here you can define all your data sets by using simple YAML syntax.
+#
+# Documentation for this file format can be found in "The Data Catalog"
+# Link: https://kedro.readthedocs.io/en/stable/data/data_catalog.html
+
+iris_csv:
+  type: pandas.CSVDataSet
+  filepath: data/01_raw/iris.csv
+
+iris_bronze:
+  type: kedro_datasets.databricks.ManagedTableDataSet
+  table: iris
+  dataframe_type: pandas
+  database: bronze
+
+iris_features:
+  type: kedro_datasets.databricks.ManagedTableDataSet
+  table: iris_features
+  database: silver
+  
+iris_predictions:
+  type: kedro_datasets.databricks.ManagedTableDataSet
+  table: iris_predictions_{{ cookiecutter.user_email.split('@')[0] }}
+  database: gold
+
+regression_model:
+  type: kedro_datasets.databricks.MLFlowModel
+  flavor: mlflow.spark
+  model_name: iris_model_{{ cookiecutter.user_email.split('@')[0] }}
+
+accuracy:
+  type: kedro_datasets.databricks.MLFlowMetrics
+  prefix: iris
