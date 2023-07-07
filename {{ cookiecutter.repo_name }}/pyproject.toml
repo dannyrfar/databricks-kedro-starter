@@ -36,7 +36,6 @@ kedro-datasets = { git = "https://github.com/dannyrfar/kedro-plugins.git", subdi
 kedro-viz = "6.3.1"
 
 [tool.poetry.group.dev.dependencies]
-kedro-viz = "^5.3.0"
 pre-commit = "^2.20.0"
 jupyter = "^1.0.0"
 ipython = ">7.31.1, <8.0"
