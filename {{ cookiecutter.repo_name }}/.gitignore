@@ -160,3 +160,7 @@ venv.bak/
 .mypy_cache/
 
 .vscode
+
+metastore_db/
+spark-warehouse/
+mlruns/
