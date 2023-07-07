@@ -2,21 +2,25 @@ from pyspark.ml.feature import VectorAssembler, StringIndexer
 from pyspark.ml.classification import LogisticRegression
 from pyspark.ml.evaluation import MulticlassClassificationEvaluator
 from pyspark.sql import SparkSession
+import pandas as pd
+
 
 def generate_features(data):
-    data = SparkSession.builder.getOrCreate().createDataFrame(data)
+    if isinstance(data, pd.DataFrame):
+        data = SparkSession.builder.getOrCreate().createDataFrame(data)
     feature_cols = data.columns[:-1]
-    assembler = VectorAssembler(inputCols=feature_cols, outputCol='features')
+    assembler = VectorAssembler(inputCols=feature_cols, outputCol="features")
     data = assembler.transform(data)
 
     # convert text labels into indices
-    data = data.select(['features', 'species'])
-    label_indexer = StringIndexer(inputCol='species', outputCol='label').fit(data)
+    data = data.select(["features", "species"])
+    label_indexer = StringIndexer(inputCol="species", outputCol="label").fit(data)
     data = label_indexer.transform(data)
 
     # only select the features and label column
-    data = data.select(['features', 'label'])
+    data = data.select(["features", "label"])
     return data
+
 
 def generate_predictions(data):
     reg = 0.01
@@ -30,7 +34,7 @@ def generate_predictions(data):
     prediction = model.transform(test)
 
     # evaluate the accuracy of the model using the test set
-    evaluator = MulticlassClassificationEvaluator(metricName='accuracy')
+    evaluator = MulticlassClassificationEvaluator(metricName="accuracy")
     accuracy = {"accuracy": evaluator.evaluate(prediction)}
-    
+
     return prediction, model, accuracy

@@ -4,13 +4,16 @@
 # Link: https://kedro.readthedocs.io/en/stable/data/data_catalog.html
 
 iris_csv:
-  type: pandas.CSVDataSet
+  type: spark.SparkDataSet
   filepath: data/01_raw/iris.csv
+  file_format: csv
+  load_args:
+    header: True
+    inferSchema: True
 
 iris_bronze:
   type: kedro_datasets.databricks.ManagedTableDataSet
   table: iris
-  dataframe_type: pandas
   database: bronze
 
 iris_features:
