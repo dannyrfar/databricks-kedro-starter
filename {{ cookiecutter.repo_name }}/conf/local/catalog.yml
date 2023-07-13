@@ -13,24 +13,10 @@ iris_csv:
 
 iris_bronze:
   type: kedro_datasets.databricks.ManagedTableDataSet
-  table: iris
+  table: iris_{{ cookiecutter.user_email.split('@')[0] }}
   database: bronze
 
 iris_features:
   type: kedro_datasets.databricks.ManagedTableDataSet
-  table: iris_features
+  table: iris_features_{{ cookiecutter.user_email.split('@')[0] }}
   database: silver
-  
-iris_predictions:
-  type: kedro_datasets.databricks.ManagedTableDataSet
-  table: iris_predictions_{{ cookiecutter.user_email.split('@')[0] }}
-  database: gold
-
-regression_model:
-  type: kedro_datasets.databricks.MLFlowModel
-  flavor: mlflow.spark
-  model_name: iris_model_{{ cookiecutter.user_email.split('@')[0] }}
-
-accuracy:
-  type: kedro_datasets.databricks.MLFlowMetrics
-  prefix: iris

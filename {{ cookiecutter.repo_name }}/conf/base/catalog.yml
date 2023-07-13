@@ -13,14 +13,14 @@ iris_csv:
 
 iris_bronze:
   type: kedro_datasets.databricks.ManagedTableDataSet
-  table: iris
+  table: iris_{{ cookiecutter.user_email.split('@')[0] }}
   dataframe_type: pandas
   database: bronze
   <<: *catalog
 
 iris_features:
   type: kedro_datasets.databricks.ManagedTableDataSet
-  table: iris_features
+  table: iris_features_{{ cookiecutter.user_email.split('@')[0] }}
   database: silver
   <<: *catalog
   

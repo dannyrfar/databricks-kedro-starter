@@ -1,4 +1,4 @@
-mlflow_enabled: True
+mlflow_enabled: False
 mlflow_sso_enabled: False
 mlflow_instance: databricks
 mlflow_tracking_uri: databricks
